@@ -1,7 +1,8 @@
 const puppeteer = require('puppeteer');
 
 const BASE_URL = 'https://instagram.com/';
-const TAG_URL = (tag) => `https://www.instagram.com/explore/tags/${tag}/`;
+const TAG_URL = 'https://www.instagram.com/p/CNn3rhUrvWC/';
+const URL = 'https://www.instagram.com/p/B_h2VSApuBQ/';
 
 const instagram = {
   
@@ -28,27 +29,9 @@ const instagram = {
     await instagram.page.waitFor(1000);
 
     // vamos selecionar o botao login do instagram
-    let loginButton = await instagram.page.$x('//a[contains(text(), "Log in")]');
+    let loginButton = await instagram.page.$x('//a[contains(text(), "Log In")]');
 
-    // TRY TO CLICK AT THE LOGIN BUTTON
-    try {
-      // first attempt
-      await loginButton[0].click();
-    } catch(err) {
-      // first attempt error
-      console.log('[1]could not click at login button. Error: ', err);
-      // try again
-      try {
-        // second attempt
-        await instagram.page.waitFor(1000);
-      } catch(err) {
-        // second attempt error
-        console.log('[2]could not click at login button. Error: ', err);
-      }
-    } 
-
-    // wait for the navigation
-    //await instagram.page.waitForNavigation({ waitUntil: 'networkidle2' });
+    // // TRY TO CLICK AT THE LOGIN BUTTON
 
     // wait 4sec
     await instagram.page.waitFor(4000);
@@ -110,97 +93,31 @@ const instagram = {
     await instagram.page.waitFor('a > svg[aria-label="Home"]');
   },
 
-  likeTagsProcess: async (tags = []) => {
-
-    for (let i = 0; i < 3; i++) {
+  amigos: async (tags = []) => {
      
+    while(true){
       for(let tag of tags) {
 
         // Go to the tag page
-        await instagram.page.goto(TAG_URL(tag), { waitUntil: 'networkidle2' });
-        await instagram.page.waitFor(1000);
+        await instagram.page.goto(TAG_URL, { waitUntil: 'networkidle2' });
+        //await instagram.page.waitFor(15000);
+        await instagram.page.waitFor(5000);
   
+        console.log('chegou aqui ' + tag)
         // recuperado os posts mais recentes, vai ser um array
         // https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pageselector-1
-        let posts = await instagram.page.$$('article > div:nth-child(3) img[decoding="auto"]');
-  
-        //console.log(posts);
-  
-        // queremos pegar os 3 primeiros apenas
-        for(let i = 0; i < 3; i++) {
-  
-          // cada post vai ser um element handler
-          let post = posts[i];
-  
-          // clicar no post
-          await post.click();
-  
-          // espera o modal abrir
-          await instagram.page.waitFor('body[style="overflow: hidden;"]');
+        
+        await instagram.page.type('textarea', tag, { delay: 50 });
+        let loginButton = await instagram.page.$x('//button[contains(text(), "Post")]');
 
-          /*let test = await instagram.page.$('body[style="overflow: hidden;"]');
-          console.log(test);*/
-
-          await instagram.page.waitFor(2000);
+        await loginButton[0].click();
+        await instagram.page.waitFor(5000);
   
-          // pegando o botao de like 
-          let isLikable = await instagram.page.$('svg[aria-label="Like"]');
-          //console.log('isLikable outside if', isLikable);
-          
-          // verifica se ja foi ou nao curtino
-          if(isLikable) {
-            console.log('isLikable inside if', isLikable);
-
-            // ATTEMPT TO LIKE POST
-            try {
-              // clicar no botao curtir
-              await instagram.page.click('svg[aria-label="Like"]');
-            } catch(err) {
-              // first attempt error
-              console.log('[1]could not like post. Error: ', err);
-              // try again
-              try {
-                // clicar no botao curtir caso de erro
-                await instagram.page.click('svg[aria-label="Like"]');
-              } catch(err) {
-                // second attempt error
-                console.log('[2]could not like post. Error: ', err);
-              }
-            }
-          }
-  
-          // wait 3 segs
-          await instagram.page.waitFor(3000);
-  
-          // CLOSE MODAL
-          // let closeModalButton = await instagram.page.$x('//button[contains(text(), "Close")]');
-          //console.log('closeModalButton', closeModalButton);
-          try {
-             await instagram.page.click('svg[aria-label="Close"]');
-            // await closeModalButton[0].click();
-          } catch(err) {
-            // first attempt error
-            console.log('[1]could not close post modal. Error: ', err);
-            // try again
-            try {
-              // second attempt
-              await closeModalButton[0].click();
-            } catch(err) {
-              // second attempt error
-              console.log('[2]could not close post modal. Error: ', err);
-            }
-          }
-  
-          // after close modal, wait for 2 seconds, and then the next post will be clicked
-          await instagram.page.waitFor(2000);
-        }
-  
-        // wait 15 segs
-        await instagram.page.waitFor(15000);
+        
       }
 
     }
-
+     // node index
   }
 
 };
